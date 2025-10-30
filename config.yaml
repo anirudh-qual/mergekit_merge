@@ -1,0 +1,21 @@
+slices:
+  - sources:
+    - model: meta-llama/Llama-3.2-1B-Instruct
+      parameters:
+        weight: 1.0
+      layer_range: [0,4]
+  - sources:
+      - model: meta-llama/Llama-3.2-1B-Instruct
+        parameters:
+          weight: 0.5
+        layer_range: [4,11]
+      - model: meta-llama/Llama-3.2-1B
+        parameters:
+          weight: 0.5
+        layer_range: [4,11]
+  - sources:
+      - model: meta-llama/Llama-3.2-1B-Instruct
+        parameters:
+          weight: 1.0
+        layer_range: [11,16]
+merge_method: linear
