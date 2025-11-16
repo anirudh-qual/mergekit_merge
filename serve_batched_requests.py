@@ -2,6 +2,7 @@ from openai import AsyncOpenAI
 import time
 import asyncio
 import pandas as pd
+import random
 
 class Request:
     def __init__(self,model,prompt,client):
@@ -86,30 +87,79 @@ async def router(request,special_tokens):
 async def main():
     client = AsyncOpenAI(base_url="http://localhost:8080/v1", api_key="asdad")
     special_tokens = {"base": "<|use_base|>", "instruct": "<|use_instruct|>"}
+    rows = []
+    for batch in [2,4,8,16,32,64,128]:
+        print(f"Running batch size: {batch}")
+        requests = create_batch_requests(batch,client)
+        tasks = [asyncio.create_task(router(request, special_tokens)) for request in requests]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        avg_ttft = sum([res.ttft for res in results]) / len(results)
+        avg_e2e = sum([res.e2e for res in results]) / len(results)
+        avg_tbt = sum([res.tbt for res in results]) / len(results)
+        rows.append({
+            "batch_size": batch,
+            "avg_ttft": avg_ttft,
+            "avg_e2e": avg_e2e,
+            "avg_tbt": avg_tbt
+        })
 
-    requests = [
-        Request(model="instruct", prompt="Tell me a joke about cats.", client=client),
-        Request(model="base", prompt="What is capital of India?", client=client),
-        Request(model="instruct", prompt="What is the capital of France?", client=client),
-        Request(model="base", prompt="What is opposite of die?", client=client),
-        Request(model="instruct", prompt="How many wives does Lord Shree Krishna have?", client=client),
-        Request(model="base", prompt="What is other name for mitosis.", client=client),
-        Request(model="instruct", prompt="What are the benefits of exercise?", client=client),
-        Request(model="base", prompt="How many number of stages in water cycle.", client=client),
-        Request(model="instruct", prompt="Tell me a fun fact about space.", client=client),
-        Request(model="base", prompt="How many years did Covid last?", client=client),]
-
-    tasks = [asyncio.create_task(router(request, special_tokens)) for request in requests]
-    results = await asyncio.gather(*tasks, return_exceptions=True)
-    
-    
-    df = pd.DataFrame([{
-        "ttft": res.ttft,
-        "e2e": res.e2e,
-        "tbt": res.tbt
-    } for res in results])
-
+    df = pd.DataFrame(rows)
     df.to_csv("metrics.csv", index=False)
+
+def create_batch_requests(batch_size,client):
+        requests = []
+        
+        # Synthetic prompts for instruct model
+        instruct_prompts = [
+            "Tell me a joke about dogs.",
+            "Write a short poem about the ocean.",
+            "Explain quantum computing in simple terms.",
+            "What are the benefits of exercise?",
+            "How do I make a perfect cup of coffee?",
+            "Describe the water cycle.",
+            "What is the difference between HTML and CSS?",
+            "Give me 3 tips for better time management.",
+            "What causes the seasons to change?",
+            "Explain photosynthesis to a 10-year-old.",
+            "How does a car engine work?",
+            "What are some healthy breakfast ideas?",
+            "Describe the process of making bread.",
+            "What is machine learning?",
+            "Give me a fun fact about space.",
+        ]
+        
+        # Synthetic prompts for base model
+        base_prompts = [
+            "What is capital of Germany?",
+            "The tallest mountain in the world is",
+            "Python was created by",
+            "The speed of light is approximately",
+            "Water boils at",
+            "The largest planet in our solar system is",
+            "The capital of France is",
+            "DNA stands for",
+            "The human body has",
+            "The Great Wall of China was built to",
+            "E=mc² was proposed by",
+            "The primary colors are",
+            "The Earth orbits around the",
+            "The smallest unit of life is",
+            "Oxygen has the chemical symbol",
+        ]
+        
+        # Generate half instruct and half base requests
+        for i in range(batch_size // 2):
+            prompt = random.choice(instruct_prompts)
+            requests.append(Request(model="instruct", prompt=prompt, client=client))
+        
+        for i in range(batch_size // 2):
+            prompt = random.choice(base_prompts)
+            requests.append(Request(model="base", prompt=prompt, client=client))
+        
+        # Shuffle to mix instruct and base requests
+        random.shuffle(requests)
+        
+        return requests
 
 if __name__ == "__main__":
     asyncio.run(main())
