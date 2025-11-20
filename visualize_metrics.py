@@ -28,7 +28,7 @@ df = pd.concat(dfs, ignore_index=True)
 df = df.sort_values('batch_size').reset_index(drop=True)
 
 #Create plots for columns p99_ttft_ms, mean_ttft_ms, p99_tpot_ms, mean_tpot_ms
-plot_columns = ["p99_ttft_ms", "mean_ttft_ms", "p99_tpot_ms", "mean_tpot_ms","p95_ttft_ms","p95_tpot_ms"]
+plot_columns = ["p99_ttft_ms", "mean_ttft_ms", "p99_tpot_ms", "mean_tpot_ms","p95_ttft_ms","p95_tpot_ms","mean_itl_ms","p99_itl_ms","p95_itl_ms"]
 
 for col in plot_columns:
     plt.figure(figsize=(8, 5))
