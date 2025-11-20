@@ -18,24 +18,24 @@ for f in json_files:
     with open(os.path.join(directory_path, f), 'r') as file:
         data = json.load(file)
         if qps:
-            data['batch_size'] = qps
+            data['qps'] = qps
         dfs.append(pd.DataFrame([data]))
 
 if not dfs:
     raise ValueError(f"No JSON files found in {directory_path}")
 
 df = pd.concat(dfs, ignore_index=True) 
-df = df.sort_values('batch_size').reset_index(drop=True)
+df = df.sort_values('qps').reset_index(drop=True)
 
 #Create plots for columns p99_ttft_ms, mean_ttft_ms, p99_tpot_ms, mean_tpot_ms
 plot_columns = ["p99_ttft_ms", "mean_ttft_ms", "p99_tpot_ms", "mean_tpot_ms","p95_ttft_ms","p95_tpot_ms","mean_itl_ms","p99_itl_ms","p95_itl_ms"]
 
 for col in plot_columns:
     plt.figure(figsize=(8, 5))
-    plt.plot(df["batch_size"], df[col], marker='o', linewidth=2)
-    plt.xlabel('Batch Size', fontsize=12)
+    plt.plot(df["qps"], df[col], marker='o', linewidth=2)
+    plt.xlabel('Request rate qps', fontsize=12)
     plt.ylabel('Time (ms)', fontsize=12)
-    plt.title(f'{col} vs Batch Size', fontsize=14, fontweight='bold')
+    plt.title(f'{col} vs Request rate qps', fontsize=14, fontweight='bold')
     plt.grid(True, alpha=0.3)
     plt.savefig(f"{directory_path}/{col}_plot.png", dpi=300, bbox_inches='tight')
     plt.show()
