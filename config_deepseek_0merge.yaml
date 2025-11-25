@@ -1,0 +1,15 @@
+slices:
+  - sources:
+    - model: /scratch/shared_dir/unified_models/deepseek-coder-7b-instruct-v1.5
+      name: deepseek-coder-7b-instruct-v1.5
+      parameters:
+        weight: 1.0
+      layer_range: [0,30]
+  - sources:
+    - model: /scratch/shared_dir/unified_models/deepseek-math-7b-instruct
+      name: deepseek-math-7b-instruct
+      parameters:
+        weight: 1.0
+      layer_range: [0,30]
+
+merge_method: linear
